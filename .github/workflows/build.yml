@@ -18,17 +18,17 @@ jobs:
           wget https://dl.google.com/go/go1.22.0.freebsd-amd64.tar.gz && tar -C /usr/local -xzf go1.22.0.freebsd-amd64.tar.gz && rm go1.22.0.freebsd-amd64.tar.gz
           ln -s /usr/local/go/bin/go /usr/local/bin/go
         run: |
-          git clone https://github.com/oliverkirk-sudo/WarpGPT
-          cd WarpGPT
+          git clone https://github.com/alist-org/alist
+          cd alist
           go mod download
-          go build -o warpgpt
+          go build -o alist
 
     - name: Upload artifact
       uses: actions/upload-artifact@main
       with:
-        name: warpgpt-freebsd
+        name: alist-freebsd
         path: |
-            WarpGPT/warpgpt
+            alist/alist
 
     - name: Create release
       uses: softprops/action-gh-release@v1
@@ -37,7 +37,7 @@ jobs:
       with:
         tag_name: latest
         files: |
-              WarpGPT/warpgpt
+              alist/alist
               
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
