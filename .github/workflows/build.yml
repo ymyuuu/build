@@ -8,27 +8,26 @@ jobs:
     name: Build
     steps:
     - uses: actions/checkout@v4
-    - name: Build
+    
+    - name: Setup FreeBSD VM
       uses: vmactions/freebsd-vm@v1
       with:
         usesh: true
         release: 13.2
         prepare: |
-          pkg install -y wget curl git gcc bash gawk gsed
-          wget https://dl.google.com/go/go1.22.0.freebsd-amd64.tar.gz && tar -C /usr/local -xzf go1.22.0.freebsd-amd64.tar.gz && rm go1.22.0.freebsd-amd64.tar.gz
-          ln -s /usr/local/go/bin/go /usr/local/bin/go
+          pkg install -y wget curl git gcc bash gawk gsed node npm
         run: |
-          git clone https://github.com/alist-org/alist
-          cd alist
-          go mod download
-          go build -o alist
-
+          git clone https://github.com/Privoce/vocechat-web
+          cd vocechat-web
+          npm install
+          npm run build
+    
     - name: Upload artifact
       uses: actions/upload-artifact@main
       with:
-        name: alist-freebsd
+        name: vocechat-web-freebsd
         path: |
-            alist/alist
+            vocechat-web/dist
 
     - name: Create release
       uses: softprops/action-gh-release@v1
@@ -37,8 +36,8 @@ jobs:
       with:
         tag_name: latest
         files: |
-              alist/alist
-              
+              vocechat-web/dist/**/*
+
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
       with:
