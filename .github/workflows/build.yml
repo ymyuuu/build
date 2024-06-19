@@ -8,26 +8,27 @@ jobs:
     name: Build
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Setup FreeBSD VM
+    - name: Build
       uses: vmactions/freebsd-vm@v1
       with:
         usesh: true
         release: 13.2
         prepare: |
-          pkg install -y wget curl git gcc bash gawk gsed node npm
+          pkg install -y wget curl git gcc bash gawk gsed
+          wget https://dl.google.com/go/go1.22.0.freebsd-amd64.tar.gz && tar -C /usr/local -xzf go1.22.0.freebsd-amd64.tar.gz && rm go1.22.0.freebsd-amd64.tar.gz
+          ln -s /usr/local/go/bin/go /usr/local/bin/go
         run: |
-          git clone https://github.com/Privoce/vocechat-web
-          cd vocechat-web
-          npm install
-          npm run build
-    
+          git clone https://github.com/XIU2/CloudflareSpeedTest.git
+          cd CloudflareSpeedTest
+          go mod download
+          go build -o CloudflareST
+
     - name: Upload artifact
       uses: actions/upload-artifact@main
       with:
-        name: vocechat-web-freebsd
+        name: CloudflareST-freebsd
         path: |
-            vocechat-web/dist
+            CloudflareSpeedTest/CloudflareST
 
     - name: Create release
       uses: softprops/action-gh-release@v1
@@ -36,8 +37,8 @@ jobs:
       with:
         tag_name: latest
         files: |
-              vocechat-web/dist/**/*
-
+              CloudflareSpeedTest/CloudflareST
+              
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
       with:
