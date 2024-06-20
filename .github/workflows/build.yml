@@ -1,45 +1,26 @@
-name: Build Nezha Dashboard
+name: Go Build
 
 on:
   push:
     branches:
-      - main
+      - main  # 你可以根据需要修改分支名称
   pull_request:
     branches:
-      - main
+      - main  # 你可以根据需要修改分支名称
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v2
 
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: '1.18'  # 你可以根据需要调整 Go 版本
+        go-version: 1.20  # 你可以根据需要修改 Go 版本
 
-    - name: Cache Go modules
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
-    - name: Install dependencies
-      run: go mod download
-
-    - name: Build Nezha Dashboard
-      working-directory: ./cmd/dashboard
-      run: go build -ldflags="-s -w --extldflags '-static -fpic' -X github.com/naiba/nezha/service/singleton.Version=0.16.25"
-
-    - name: Archive production artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: nezha-dashboard
-        path: cmd/dashboard/nezha-dashboard
+    - name: Build
+      run: |
+        go build -ldflags="-s -w --extldflags '-static -fpic' -X github.com/naiba/nezha/service/singleton.Version=0.16.25"
