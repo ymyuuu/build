@@ -22,13 +22,15 @@ jobs:
           cd nezha
           go mod download
           go build -o nezha-agent ./cmd/agent
+          mkdir -p /home/runner/work/nezha/output
+          mv nezha-agent /home/runner/work/nezha/output/
 
     - name: Upload artifact
       uses: actions/upload-artifact@main
       with:
         name: nezha-agent-freebsd
         path: |
-            nezha/nezha-agent
+            nezha/output/nezha-agent
 
     - name: Create release
       uses: softprops/action-gh-release@v1
@@ -37,7 +39,7 @@ jobs:
       with:
         tag_name: latest
         files: |
-              nezha/nezha-agent
+              nezha/output/nezha-agent
               
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
