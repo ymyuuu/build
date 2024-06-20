@@ -22,7 +22,13 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.20  # 你可以根据需要修改 Go 版本
+        go-version: 1.20  # 确保使用的是正确的 Go 版本
+
+    - name: Verify Go version
+      run: go version
+
+    - name: Set GOPATH
+      run: echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
 
     - name: Install dependencies
       run: |
