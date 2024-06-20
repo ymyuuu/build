@@ -18,17 +18,17 @@ jobs:
           wget https://dl.google.com/go/go1.22.0.freebsd-amd64.tar.gz && tar -C /usr/local -xzf go1.22.0.freebsd-amd64.tar.gz && rm go1.22.0.freebsd-amd64.tar.gz
           ln -s /usr/local/go/bin/go /usr/local/bin/go
         run: |
-          git clone https://github.com/XIU2/CloudflareSpeedTest.git
-          cd CloudflareSpeedTest
+          git clone https://github.com/naiba/nezha.git
+          cd nezha
           go mod download
-          go build -o CloudflareST
+          go build -o nezha-agent ./cmd/agent
 
     - name: Upload artifact
       uses: actions/upload-artifact@main
       with:
-        name: CloudflareST-freebsd
+        name: nezha-agent-freebsd
         path: |
-            CloudflareSpeedTest/CloudflareST
+            nezha/nezha-agent
 
     - name: Create release
       uses: softprops/action-gh-release@v1
@@ -37,7 +37,7 @@ jobs:
       with:
         tag_name: latest
         files: |
-              CloudflareSpeedTest/CloudflareST
+              nezha/nezha-agent
               
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
