@@ -26,5 +26,5 @@ jobs:
 
     - name: Build
       run: |
-        cd nezha
+        cd nezha/cmd/dashboard
         go build -ldflags="-s -w --extldflags '-static -fpic' -X github.com/naiba/nezha/service/singleton.Version=0.16.25"
