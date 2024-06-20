@@ -16,6 +16,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Clone repository
+      run: git clone https://github.com/naiba/nezha.git
+
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
@@ -23,4 +26,5 @@ jobs:
 
     - name: Build
       run: |
+        cd nezha
         go build -ldflags="-s -w --extldflags '-static -fpic' -X github.com/naiba/nezha/service/singleton.Version=0.16.25"
