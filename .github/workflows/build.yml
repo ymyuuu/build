@@ -1,41 +1,76 @@
-name: Go Build
+name: Build
 
-on:
-  push:
-    branches:
-      - main  # 你可以根据需要修改分支名称
-  pull_request:
-    branches:
-      - main  # 你可以根据需要修改分支名称
+on: workflow_dispatch
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    name: Build
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Clone repository
-      run: git clone https://github.com/naiba/nezha.git
+    - uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
       with:
-        go-version: 1.20  # 确保使用的是正确的 Go 版本
+        go-version: 'stable'
+        check-latest: true
 
-    - name: Verify Go version
-      run: go version
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
 
-    - name: Set GOPATH
-      run: echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
-
-    - name: Install dependencies
+    - name: Clone Repo
       run: |
-        cd nezha
-        go mod tidy
+        export LATEST_APP=$(wget -qO- https://api.github.com/repos/usememos/memos/tags | gawk -F '["v]' '/name/{print "v"$5;exit}')
+        git clone -b $LATEST_APP https://github.com/usememos/memos
+        npm install -g pnpm
 
-    - name: Build
+    - name: Build Frontend
       run: |
-        cd nezha/cmd/dashboard  # 进入包含main.go的目录
-        go build -ldflags="-s -w --extldflags '-static -fpic' -X github.com/naiba/nezha/service/singleton.Version=0.16.25"
+        cd memos/web
+        corepack enable && pnpm i --frozen-lockfile
+        pnpm build
+        mkdir -p ../artifact
+        rm -rf ../server/router/frontend/dist
+        mkdir -p ../server/router/frontend
+        cp -R dist ../server/router/frontend/dist
+        cd ../..
+
+    - name: Build binary
+      run: |
+        cd memos
+        GOOS=freebsd GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go
+        mkdir -p artifact
+        rm -f artifact/*
+        cp memos artifact/memos
+        cd artifact
+        tar -czvf ../memos-freebsd-amd64.tar.gz *
+        cd ..
+        cd ..
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: memos-pre-built
+        path: memos/memos-freebsd-amd64.tar.gz
+            
+    - name: Generate release tag
+      id: tag
+      run: echo "release_tag=$(wget -qO- https://api.github.com/repos/usememos/memos/tags | gawk -F '["v]' '/name/{print "v"$5;exit}')" >> $GITHUB_OUTPUT
+
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        files: memos/memos-freebsd-amd64.tar.gz
+        
+    - name: Delete workflow runs
+      uses: Mattraks/delete-workflow-runs@v2
+      with:
+        token: ${{ github.token }}
+        repository: ${{ github.repository }}
+        retain_days: 1
+        keep_minimum_runs: 8
